@@ -1,82 +1,61 @@
-corpus = [
-    'URGENT! You have won a 1 week FREE membership in our prize jackpot.',
-    'Hey, what time is the meeting tomorrow?',
-    'WINNER!! As a valued network customer you have been selected to receive a prize.',
-    'Are you coming to the party tonight?',
-    'Congratulations! You won a free flight to Bahamas.'
-]
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import accuracy_score
+import pickle
 
-def build_vocabulary(corpus):
-    """
-    Builds a sorted list of unique words from all documents in the corpus.
-    
-    Args:
-        corpus (list of str): A list of text documents.
-        
-    Returns:
-        list of str: A sorted list of unique words.
-    """
-    # 1. Initialize an empty set to store unique words. A set is used to automatically handle duplicates.
-    # 2. Loop through each document in the corpus.
-    # 3. For each document, split it into words (use .lower() to make it case-insensitive).
-    # 4. Add all words to the set.
-    # 5. Convert the set to a list and sort it alphabetically.
-    # 6. Return the sorted list.
-    
-    unique_words = set()
-    for document in corpus:
-        words = document.lower().split()
-        cleaned_words = [word.strip('.,!?') for word in words]  # Remove punctuation
-        unique_words.update(cleaned_words)
+print("--- Starting Model Training ---")
 
-    vocabulary = sorted(unique_words)
+# 1. Load the CLEANED dataset
+#    The data is in 'spam_cleaned.csv'. No further cleaning is needed here.
+df = pd.read_csv('spam_cleaned.csv')
 
-    # 7. Print the sorted list of unique words.
-    
-    return vocabulary
+# 2. Split data into features (X) and labels (y)
 
-def vectorize_text(text, vocabulary):
-    """
-    Converts a single text document into a numerical vector.
-        
-    Args:
-        text (str): The text document to vectorize.
-        vocabulary (list of str): The sorted list of unique words.
-            
-    Returns:
-        list of int: A numerical vector representing the word counts.
-    """
-        # 1. Initialize a vector of zeros. The length of this vector should be the same as the vocabulary's length.
-        # 2. Pre-process the input text (e.g., convert to lowercase) and split it into words.
-        # 3. Loop through the words in the processed text.
-        # 4. For each word, if it exists in the vocabulary:
-            # a. Find the index (position) of that word in the vocabulary.
-            # b. Increment the count at that index in your vector.
-        # 5. Return the final vector.
-       
-    vector = [0] * len(vocabulary)
-    
-    cleaned_text = text.lower().split()
-    cleaned_text = [word.strip('.,!?') for word in cleaned_text]  #
-    
-    for word in cleaned_text:
-        if word in vocabulary: 
-            index = vocabulary.index(word)
-            vector[index] += 1
-    print(f"Vector after processing text: {vector}")
-    return vector
+X = df['message']  # The text messages
+y = df['label']    # The labels (0 for ham, 1 for spam
 
-# --- Main Execution ---
-if __name__ == '__main__':
-    # 1. Build the vocabulary from the corpus
-    vocabulary = build_vocabulary(corpus)
-    print(f"Vocabulary ({len(vocabulary)} words):")
-    print(vocabulary)
-    print("-" * 30)
+# 3. Split data into training and testing sets
+#    Use a 80/20 split and a random_state for reproducibility.
 
-    # 2. Vectorize each document in the corpus
-    print("Vectorized Corpus:")
-    for doc in corpus:
-        vector = vectorize_text(doc, vocabulary)
-        print(f"Original: {doc}")
-        print(f"Vector:   {vector}\n")
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+print(f"Training set size: {len(X_train)}, Test set size: {len(X_test)}")
+print("--- Data split into training and testing sets ---")
+print(f"Example training data: {X_train.head()}")
+print(f"Example training labels: {y_train.head()}")
+print(f"Example test data: {X_test.head()}")
+print(f"Example test labels: {y_test.head()}")
+
+# 4. Vectorize the text data
+#    Initialize a CountVectorizer and fit it ONLY on the training data.
+#    Then transform both the training and testing data.
+
+vectorizer = CountVectorizer()
+X_train_vec = vectorizer.fit_transform(X_train)
+X_test_vec = vectorizer.transform(X_test)
+
+# 5. Train the Naive Bayes classifier
+#    Initialize a MultinomialNB model and train it with the vectorized training data.
+model = MultinomialNB()
+model.fit(X_train_vec, y_train)
+
+# 6. Evaluate the model (optional but good practice)
+#    Make predictions on the test set and calculate the accuracy.
+# <-- Predict on X_test_vec
+accuracy = accuracy_score(y_test, model.predict(X_test_vec))
+print(f"Model Accuracy: {accuracy * 100:.2f}%")
+
+# 7. Save the trained model AND the vectorizer
+#    Use pickle to save both objects to .pkl files.
+#    This is crucial, as you need the SAME vectorizer for prediction.
+
+with open('spam_model.pkl', 'wb') as model_file:
+    pickle.dump(model, model_file)
+
+with open('vectorizer.pkl', 'wb') as vectorizer_file:
+    pickle.dump(vectorizer, vectorizer_file)
+
+
+print("--- Model and Vectorizer saved successfully! ---")
