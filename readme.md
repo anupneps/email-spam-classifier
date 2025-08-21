@@ -26,30 +26,51 @@ Built using **Python**, **Scikit-learn**, and **Flask**, this project takes raw 
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/email-spam-classifier.git
+git clone https://github.com/anupneps/email-spam-classifier.git
 cd email-spam-classifier
 ```
 
-### 2. Install Dependencies
+### 2. Create and activate a virtual environment (optional but recommended)
+
+```bash
+python -m venv .venv
+```
+
+#### Activate the virtual environment
+
+- **Windows (Command Prompt):**
+    ```bash
+    .venv\Scripts\activate
+    ```
+- **Windows (PowerShell):**
+    ```bash
+    .venv\Scripts\Activate.ps1
+    ```
+- **macOS/Linux:**
+    ```bash
+    source .venv/bin/activate
+    ```
+
+### 3. Install Dependencies
 
 ```bash
 pip install --no-cache-dir pandas numpy scikit-learn flask
 ```
 
-### 3. Prepare the Data
+### 4. Prepare the Data
 
 - Place the `spam.csv` file in the root folder.
 - Run `data_cleaner.py` to clean the dataset and generate `spam_cleaned.csv`.
 
-### 4. Train the Model
+### 5. Train the Model
 
 ```bash
 python model.py
 ```
-- Run `model.py` to vectorize the cleaned data and train the Naive Bayes model.
+- Runs `model.py` to vectorize the cleaned data and train the Naive Bayes model.
 - Generates `model.pkl` and `vectorizer.pkl` for the Flask app.
 
-### 5. Run the Web App
+### 6. Run the Web App
 
 ```bash
 python main.py
@@ -110,5 +131,3 @@ print("Spam" if prediction[0] == 1 else "Not Spam")
 - Flask
 
 ---
-
-
